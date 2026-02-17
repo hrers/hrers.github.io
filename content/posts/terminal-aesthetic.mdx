@@ -1,0 +1,99 @@
+---
+title: "终端美学：为什么我选择 Terminal 风格"
+date: "2026-02-17"
+excerpt: "探讨 terminal 风格设计的魅力，以及如何用 Tailwind CSS 实现一个极客感十足的博客界面。"
+tags: ["设计", "Tailwind CSS", "随笔"]
+---
+
+## Terminal 的魅力
+
+对于程序员来说，terminal 不仅是一个工具，更是一种审美。绿色的文字在黑色背景上闪烁，光标有节奏地跳动——这种画面自带一种 cyberpunk 的浪漫。
+
+```css
+/* Terminal 经典配色 */
+:root {
+  --terminal-bg: #0a0a0a;
+  --terminal-green: #00ff41;
+  --terminal-dim: #00cc33;
+  --terminal-border: #333333;
+}
+```
+
+## 设计原则
+
+在设计这个博客时，我遵循了几个原则：
+
+### 1. 单色系为主
+
+整个界面以绿色（`#00ff41`）为主色调，搭配不同透明度来表现层次：
+
+```typescript
+const palette = {
+  primary: "#00ff41",    // 主色
+  secondary: "#00cc33",  // 次要文字
+  muted: "rgba(0, 255, 65, 0.6)",  // 弱化文字
+  background: "#0a0a0a", // 背景
+  surface: "#111111",    // 卡片背景
+};
+```
+
+### 2. 等宽字体
+
+Terminal 的灵魂是等宽字体。每个字符占据相同的宽度，整齐排列，有一种机械的美感：
+
+```css
+font-family: "Geist Mono", "JetBrains Mono", "Fira Code", monospace;
+```
+
+### 3. 模拟命令行交互
+
+页面元素尽量模拟 terminal 的交互方式：
+
+- 文章列表像 `ls -la` 的输出
+- 标签页像 `grep` 的搜索结果
+- 导航像命令行提示符
+
+## Tailwind CSS 实现
+
+用 Tailwind CSS 实现 terminal 风格非常方便：
+
+```tsx
+// Terminal 风格的文章卡片
+function PostCard({ post }) {
+  return (
+    <div className="border border-green-900/50 p-4 font-mono">
+      <span className="text-[#00ff41]">$ cat</span>
+      <span className="text-green-300 ml-2">{post.title}</span>
+      <p className="text-green-600 mt-2 text-sm">{post.excerpt}</p>
+    </div>
+  );
+}
+```
+
+## 字符动画
+
+Terminal 风格的一个重要元素是打字机效果。光标闪烁、文字逐字显示，这些细节让整个界面活了起来：
+
+```typescript
+function typeWriter(text: string, speed: number = 50): void {
+  let i = 0;
+  const timer = setInterval(() => {
+    if (i < text.length) {
+      process.stdout.write(text.charAt(i));
+      i++;
+    } else {
+      clearInterval(timer);
+    }
+  }, speed);
+}
+```
+
+## 结语
+
+Terminal 风格不只是怀旧，它代表了一种极简主义的设计哲学——去掉一切不必要的装饰，让内容成为主角。在信息过载的时代，这种克制反而是一种奢侈。
+
+```
+> echo "Less is more."
+Less is more.
+> _
+```

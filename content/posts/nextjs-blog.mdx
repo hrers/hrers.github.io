@@ -1,0 +1,90 @@
+---
+title: "用 Next.js 16 搭建 MDX 博客"
+date: "2026-02-14"
+excerpt: "从零开始用 Next.js App Router 和 MDX 搭建一个极客风格的博客，包含代码高亮、阅读时间估算等功能。"
+tags: ["Next.js", "MDX", "教程"]
+---
+
+## 项目初始化
+
+首先创建一个 Next.js 项目：
+
+```bash
+npx create-next-app@latest blog --typescript --tailwind --app
+cd blog
+```
+
+然后安装 MDX 相关依赖：
+
+```bash
+npm install gray-matter next-mdx-remote reading-time rehype-pretty-code shiki
+```
+
+## 内容管理
+
+我选择将 MDX 文件存放在 `content/posts/` 目录下，用 `gray-matter` 解析 frontmatter：
+
+```typescript
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
+
+const postsDirectory = path.join(process.cwd(), "content/posts");
+
+export function getPostBySlug(slug: string) {
+  const fullPath = path.join(postsDirectory, `${slug}.mdx`);
+  const fileContents = fs.readFileSync(fullPath, "utf8");
+  const { data, content } = matter(fileContents);
+  return { data, content };
+}
+```
+
+## MDX 渲染
+
+使用 `next-mdx-remote/rsc` 在 Server Component 中渲染 MDX 内容：
+
+```tsx
+import { MDXRemote } from "next-mdx-remote/rsc";
+import rehypePrettyCode from "rehype-pretty-code";
+
+export default async function PostPage({ params }) {
+  const post = getPostBySlug(params.slug);
+
+  return (
+    <MDXRemote
+      source={post.content}
+      options={{
+        mdxOptions: {
+          rehypePlugins: [[rehypePrettyCode, { theme: "github-dark" }]],
+        },
+      }}
+    />
+  );
+}
+```
+
+## 代码高亮
+
+`rehype-pretty-code` 基于 Shiki，支持非常多语言和主题。配合 terminal 风格的博客，我选择了 `github-dark` 主题，效果很不错。
+
+以下是一个 Python 示例：
+
+```python
+def fibonacci(n: int) -> list[int]:
+    """生成斐波那契数列"""
+    if n <= 0:
+        return []
+    fib = [0, 1]
+    for i in range(2, n):
+        fib.append(fib[i-1] + fib[i-2])
+    return fib[:n]
+
+print(fibonacci(10))
+# [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+```
+
+## 小结
+
+使用 Next.js App Router + MDX 的组合非常灵活。Server Component 让我们可以在服务端直接读取文件系统，不需要额外的 API 层。配合 Tailwind CSS 的工具类，可以快速构建出美观的界面。
+
+下一篇会聊聊这个博客的 terminal 美学设计思路。

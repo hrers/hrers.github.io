@@ -1,0 +1,78 @@
+---
+title: "搭建 Running Page 跑步数据页面"
+date: "2024-10-04"
+excerpt: "记录使用 running_page 开源项目搭建个人跑步数据可视化页面的完整过程，包括环境配置、数据同步与 GitHub Actions 自动部署。"
+tags: ["running", "building"]
+---
+
+[Running Page](https://github.com/yihong0618/running_page) 是一个开源的跑步数据可视化项目，可以将 Keep、Strava、Garmin 等平台的跑步记录同步下来，生成一个好看的个人跑步主页。这篇文章记录了我搭建这个页面的过程。
+
+## 环境
+
+- MacBook Pro 16 2021
+
+## 参考教程
+
+- [running_page GitHub 仓库文档](https://github.com/yihong0618/running_page)
+- [YouTube 视频教程](https://www.youtube.com/watch?v=reLiY9p8EJk)
+
+## 搭建过程
+
+### 1. 克隆源码并配置 Python 环境
+
+```bash
+git clone https://github.com/yihong0618/running_page.git
+cd running_page
+python3 -m venv myenv
+source myenv/bin/activate
+```
+
+### 2. 安装依赖并启动
+
+```bash
+pip3 install -r requirements.txt
+npm install -g corepack && corepack enable && pnpm install
+pnpm develop
+```
+
+### 3. 同步跑步数据（Keep）
+
+拉取数据之后才能生成对应的图表：
+
+```bash
+python3 run_page/keep_sync.py ${keep_phone_number} ${keep_password}
+```
+
+生成统计 SVG：
+
+```bash
+python3 run_page/gen_svg.py --from-db --title "跑步记录" --type github \
+  --athlete "Awua" --special-distance 10 --special-distance2 20 \
+  --special-color yellow --special-color2 red \
+  --output assets/github.svg --use-localtime --min-distance 0.5
+
+python3 run_page/gen_svg.py --from-db --type circular --use-localtime
+```
+
+重新启动 `pnpm develop` 即可看到基于 Keep 数据生成的图表。
+
+### 4. 推送到 GitHub 并配置 Actions
+
+将仓库清理掉原有 git 信息后，重新初始化并推送到自己的 GitHub。然后配置 GitHub Actions：
+
+![Github Action 设置 1](/images/build-running-page/github-action-setting-1.png)
+
+![Github Action 设置 2](/images/build-running-page/github-action-setting-2.png)
+
+### 5. 修改 run_data_sync.yml 配置
+
+```yml
+env:
+  RUN_TYPE: keep
+  ATHLETE: Awua
+  TITLE: Awua Running
+  MIN_GRID_DISTANCE: 3.0
+  TITLE_GRID: Over 3km Runs
+  GITHUB_NAME: "hrers@github.com"
+  GITHUB_EMAIL: "zjwawu@gmail.com"
+```
